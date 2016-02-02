@@ -17,7 +17,9 @@
 
 package org.apache.spark.streaming
 
-import scala.collection.mutable.{ArrayBuffer, HashMap, SynchronizedBuffer, SynchronizedMap}
+import java.util.concurrent.ConcurrentHashMap
+
+import scala.collection.mutable.{ArrayBuffer, HashMap, SynchronizedBuffer}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -32,6 +34,7 @@ import org.apache.spark.storage.StorageLevel
 import org.apache.spark.streaming.dstream.DStream
 import org.apache.spark.streaming.receiver.Receiver
 import org.apache.spark.streaming.scheduler._
+import scala.collection.convert.decorateAsScala._
 
 class StreamingListenerSuite extends TestSuiteBase with Matchers {
 
@@ -357,7 +360,7 @@ class StreamingListenerSuiteReceiver extends Receiver[Any](StorageLevel.MEMORY_O
  */
 class FailureReasonsCollector extends StreamingListener {
 
-  val failureReasons = new HashMap[Int, String] with SynchronizedMap[Int, String]
+  val failureReasons = new ConcurrentHashMap[Int, String].asScala
 
   override def onOutputOperationCompleted(
       outputOperationCompleted: StreamingListenerOutputOperationCompleted): Unit = {
