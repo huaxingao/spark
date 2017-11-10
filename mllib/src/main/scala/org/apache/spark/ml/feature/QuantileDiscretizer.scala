@@ -188,10 +188,11 @@ final class QuantileDiscretizer @Since("1.6.0") (@Since("1.6.0") override val ui
   @Since("1.6.0")
   override def transformSchema(schema: StructType): StructType = {
     val (inputColNames, outputColNames) = getInOutCols
-    var outputFields = schema.fields
+    val existingFields = schema.fields
+    var outputFields = existingFields
     inputColNames.zip(outputColNames).map { case (inputColName, outputColName) =>
       SchemaUtils.checkNumericType(schema, inputColName)
-      require(outputFields.forall(_.name != outputColName),
+      require(existingFields.forall(_.name != outputColName),
         s"Output column ${outputColName} already exists.")
       val attr = NominalAttribute.defaultAttr.withName(outputColName)
       outputFields :+= attr.toStructField()
