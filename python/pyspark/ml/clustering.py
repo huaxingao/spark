@@ -1184,10 +1184,6 @@ class _PowerIterationClusteringParams(JavaParams, HasMaxIter, HasPredictionCol):
                             "`idCol` and each neighbor in `neighborsCol`",
                             typeConverter=TypeConverters.toString)
 
-    # def __init__(self, *args):
-    #    super(_CountVectorizerParams, self).__init__(*args)
-    #    self._setDefault(minTF=1.0, minDF=1.0, maxDF=2 ** 63 - 1, vocabSize=1 << 18, binary=False)
-
     @since("2.4.0")
     def getK(self):
         """
