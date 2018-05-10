@@ -2995,6 +2995,20 @@ setMethod("array_contains",
           })
 
 #' @details
+#' \code{array_join}: Concatenates the elements of \code{column} using the \code{delimiter}.
+#' Null values are replaced with \code{null_replacement} if set, otherwise they are ignored.
+#'
+#' @rdname column_collection_functions
+#' @aliases array_join array_join,Column-method
+#' @note array_join since 2.4.0
+setMethod("array_join",
+          signature(x = "Column", delimiter = "character"),
+          function(x, delimiter, nullReplacement = NA) {
+            jc <- callJStatic("org.apache.spark.sql.functions", "array_join", x@jc, delimiter, nullReplacement)
+            column(jc)
+          })
+
+#' @details
 #' \code{array_max}: Returns the maximum value of the array.
 #'
 #' @rdname column_collection_functions
