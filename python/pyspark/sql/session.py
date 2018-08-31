@@ -257,10 +257,10 @@ class SparkSession(object):
         """
         Returns the active SparkSession for the current thread, returned by the builder.
         >>> s = spark.getActiveSession()
-        >>> spark._jvm.SparkSession.getDefaultSession().get().equals(s.get())
+        >>> spark._jsparkSession.getDefaultSession().get().equals(s.get())
         True
         """
-        return self._jvm.SparkSession.getActiveSession()
+        return self._jsparkSession.getActiveSession()
 
     @property
     @since(2.0)
