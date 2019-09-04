@@ -20,20 +20,27 @@ license: |
 ---
 
 ### Description
-Drop all cached entries associated with the table from the RDD cache
+`UNCACHE TABLE` removes the entries and associated data from the in-memory and/or on-disk cache for the given name. The
+underlying entries should already have been brought to cache by previous `CACHE TABLE` operation. `UNCACHE TABLE` on a non-existing table throws Exception if `IF EXISTS` is not specified.
 
 ### Syntax
 {% highlight sql %}
-UNCACHE TABLE [IF EXISTS] [db_name.]table_name
+UNCACHE TABLE [ IF EXISTS ] table_name
 {% endhighlight %}
 
-### Example
-{% highlight sql %}
-UNCACHE TABLE t1
-{% endhighlight %}
 
 ### Parameters
+<dl>
+  <dt><code><em>table_name</em></code></dt>
+  <dd>The name of the table to be uncached.</dd>
+</dl>
 
-#### ***table_name***:
-The name of an existing table.
+### Examples
+{% highlight sql %}
+UNCACHE TABLE t1;
+{% endhighlight %}
+
+### Related Statements
+  * [CACHE TABLE](sql-ref-syntax-aux-cache-cache-table.html)
+  * [CLEAR CACHE](sql-ref-syntax-aux-cache-clear-cache.html)
 
