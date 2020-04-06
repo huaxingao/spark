@@ -19,34 +19,123 @@ license: |
   limitations under the License.
 ---
 
-Set operators are used to combine the results of two or more queries to a single result set. Spark supports three types od set operators:
+Set operators are used to combine the results of two queries into a single result. Spark SQL supports three types of set operators:
 - `EXCEPT` and `EXCEPT ALL`
 - `INTERSECT` and `INTERSECT ALL`
 - `UNION` and `UNION ALL`
-Please note the queries' result sets must have the same number of columns and compatible data types for the respective columns.
+
+Note that the queries' result sets must have the same number of columns and compatible data types for the respective columns.
 
 ### EXCEPT and EXCEPT ALL
-`EXCEPT` and `EXCEPT ALL` return the row that are found in one query but not the other query. `EXCEPT` takes the distinct rows but `EXCEPT ALL` doesn't remove the duplicate.
+`EXCEPT` and `EXCEPT ALL` return the rows that are found in one query but not the other query. `EXCEPT` takes only distinct rows while `EXCEPT ALL` does not remove duplicates.
 
 #### Syntax
 {% highlight sql %}
-query EXCEPT [ ALL ] query
+[ ( ] query [ ) ] EXCEPT [ ALL ] [ ( ] query[ ) ]
 {% endhighlight %}
 
 ### INTERSECT and INTERSECT ALL
-`INTERSECT` and `INTERSECT ALL` return the rows that are found in both queries. `INTERSECT` takes the distinct rows but `INTERSECT ALL` doesn't remove the duplicate.
+`INTERSECT` and `INTERSECT ALL` return the rows that are found in both queries. `INTERSECT` takes only distinct rows while `INTERSECT ALL` does not remove duplicates.
 
 #### Syntax
 {% highlight sql %}
-query INTERSECT [ ALL ] query
+[ ( ] query [ ) ] INTERSECT [ ALL ] [ ( ] query [ ) ]
 {% endhighlight %}
 
 ### UNION and UNION ALL
-`UNION` and `UNION ALL` return the rows that are found in either query. `UNION` takes the distinct rows but `UNION ALL` doesn't remove the duplicate.
+`UNION` and `UNION ALL` return the rows that are found in either query. `UNION` takes only distinct rows while `UNION ALL` does not remove duplicates.
 
 #### Syntax
 {% highlight sql %}
-query UNION [ ALL ] query
+[ ( ] query [ ) ] UNION [ ALL ] [ ( ] query [ ) ]
+{% endhighlight %}
+
+### Examples
+{% highlight sql %}
+-- Use number1 and number2 tables to demonstrate set operators.
+SELECT * FROM number1;
++---+
+|  C|
++---+
+|  3|
+|  1|
+|  2|
+|  2|
+|  3|
+|  4|
++---+
+
+SELECT * FROM number2;
++---+
+|  C|
++---+
+|  5|
+|  1|
+|  2|
+|  2|
++---+
+
+SELECT C from number1 EXCEPT SELECT C FROM number2;
++---+
+|  C|
++---+
+|  3|
+|  4|
++---+
+
+SELECT C from number1 EXCEPT ALL (SELECT C FROM number2);
++---+
+|  C|
++---+
+|  3|
+|  3|
+|  4|
++---+
+
+(SELECT C from number1) INTERSECT (SELECT C FROM number2);
++---+
+|  C|
++---+
+|  1|
+|  2|
++---+
+
+(SELECT C from number1) INTERSECT ALL (SELECT C FROM number2);
++---+
+|  C|
++---+
+|  1|
+|  2|
+|  2|
++---+
+
+(SELECT C from number1) UNION (SELECT C FROM number2);
++---+
+|  C|
++---+
+|  1|
+|  3|
+|  5|
+|  4|
+|  2|
++---+
+
+SELECT C from number1 UNION ALL (SELECT C FROM number2);
++---+
+|  C|
++---+
+|  3|
+|  1|
+|  2|
+|  2|
+|  3|
+|  4|
+|  5|
+|  1|
+|  2|
+|  2|
++---+
+
 {% endhighlight %}
 
 ### Related Statement
