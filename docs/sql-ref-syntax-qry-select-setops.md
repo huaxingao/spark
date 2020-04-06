@@ -1,7 +1,7 @@
 ---
 layout: global
-title: Set Operations
-displayTitle: Set Operations
+title: Set Operators
+displayTitle: Set Operators
 license: |
   Licensed to the Apache Software Foundation (ASF) under one or more
   contributor license agreements.  See the NOTICE file distributed with
@@ -19,4 +19,35 @@ license: |
   limitations under the License.
 ---
 
-**This page is under construction**
+Set operators are used to combine the results of two or more queries to a single result set. Spark supports three types od set operators:
+- `EXCEPT` and `EXCEPT ALL`
+- `INTERSECT` and `INTERSECT ALL`
+- `UNION` and `UNION ALL`
+Please note the queries' result sets must have the same number of columns and compatible data types for the respective columns.
+
+### EXCEPT and EXCEPT ALL
+`EXCEPT` and `EXCEPT ALL` return the row that are found in one query but not the other query. `EXCEPT` takes the distinct rows but `EXCEPT ALL` doesn't remove the duplicate.
+
+#### Syntax
+{% highlight sql %}
+query EXCEPT [ ALL ] query
+{% endhighlight %}
+
+### INTERSECT and INTERSECT ALL
+`INTERSECT` and `INTERSECT ALL` return the rows that are found in both queries. `INTERSECT` takes the distinct rows but `INTERSECT ALL` doesn't remove the duplicate.
+
+#### Syntax
+{% highlight sql %}
+query INTERSECT [ ALL ] query
+{% endhighlight %}
+
+### UNION and UNION ALL
+`UNION` and `UNION ALL` return the rows that are found in either query. `UNION` takes the distinct rows but `UNION ALL` doesn't remove the duplicate.
+
+#### Syntax
+{% highlight sql %}
+query UNION [ ALL ] query
+{% endhighlight %}
+
+### Related Statement
+- [SELECT](sql-ref-syntax-qry-select.html)
