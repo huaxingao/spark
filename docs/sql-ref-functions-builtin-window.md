@@ -46,7 +46,7 @@ Similarly to aggregate functions, window functions operate on a group of rows. H
     </tr>
     <tr>
       <td><b> ntile </b></td>
-      <td>Returns the ntile group id (from 1 to `n` inclusive) in an ordered window partition. This is equivalent to the NTILE function in SQL.</td>
+      <td>Returns the ntile group id (from 1 to n inclusive) in an ordered window partition. This is equivalent to the NTILE function in SQL.</td>
     </tr>
     <tr>
       <td><b> row_number </b></td>
@@ -66,11 +66,11 @@ Similarly to aggregate functions, window functions operate on a group of rows. H
     </tr>
     <tr>
       <td><b> lag </b></td>
-      <td>Returns the value that is <code>offset</code> rows before the current row, and <code>null</code> if there are less than <code>offset</code> rows before the current row.</td>
+      <td>Returns the value that is offset rows before the current row, and null if there are less than offset rows before the current row.</td>
     </tr>
     <tr>
       <td><b> lead </b></td>
-      <td>Returns the value that is <code>offset</code> rows after the current row, and <code>null</code> if there are less than <code>offset</code> rows after the current row. This is equivalent to the LEAD function in SQL.</td>
+      <td>Returns the value that is offset rows after the current row, and null if there are less than offset rows after the current row. This is equivalent to the LEAD function in SQL.</td>
     </tr>
 </table>
 
@@ -82,7 +82,7 @@ Any of the aggregate functions can be used as a window function. Please refer to
 
   * Mark a function as window function by using `over`.
     - SQL: Add an OVER clause after the window function, e.g. avg (...) OVER (...);
-    - DataFrame API: Call the window function's `over` method, e.g. rank().over(...)
+    - DataFrame API: Call the function's `over` method, e.g. rank().over(...)
   * Define the window specification associated with this function. A window specification includes partitioning specification, ordering specification, and frame specification.
     - Partitioning Specification:
       - SQL: PARTITION BY
@@ -91,7 +91,7 @@ Any of the aggregate functions can be used as a window function. Please refer to
       - SQL: Order BY
       - DataFrame API: Window.orderBy (...)
     - Frame Specification:
-      - SQL: ROWS (for ROW frame), RANGE (for RANGE frame)
+      - SQL: ROWS ... (for ROW frame), RANGE... (for RANGE frame)
       - DataFrame API: WindowSpec.rowsBetween (for ROW frame), WindowSpec.rangeBetween (for RANGE frame)
 
 ### Examples
