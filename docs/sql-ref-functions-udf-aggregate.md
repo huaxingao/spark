@@ -98,17 +98,20 @@ For example, a user-defined average for untyped DataFrames can look like:
 {% highlight sql %}
 -- Compile and place UDAF MyAverage in a JAR file called `MyAverage.jar` in /tmp.
 CREATE FUNCTION myAverage AS 'MyAverage' USING JAR '/tmp/MyAverage.jar';
+
 SHOW USER FUNCTIONS;
 -- +------------------+
 -- |          function|
 -- +------------------+
 -- | default.myAverage|
 -- +------------------+
+
 CREATE TEMPORARY VIEW employees
 USING org.apache.spark.sql.json
 OPTIONS (
     path "examples/src/main/resources/employees.json"
 );
+
 SELECT * FROM employees;
 -- +-------+------+
 -- |   name|salary|
@@ -118,6 +121,7 @@ SELECT * FROM employees;
 -- | Justin|  3500|
 -- |  Berta|  4000|
 -- +-------+------+
+
 SELECT myAverage(salary) as average_salary FROM employees;
 -- +--------------+
 -- |average_salary|
