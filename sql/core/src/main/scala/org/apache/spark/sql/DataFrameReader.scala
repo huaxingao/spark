@@ -802,6 +802,9 @@ class DataFrameReader private[sql](sparkSession: SparkSession) extends Logging {
    */
   def table(tableName: String): DataFrame = {
     assertNoSpecifiedSchema("table")
+    for ((k, v) <- this.extraOptions) {
+      sparkSession.conf.set(k, v)
+    }
     sparkSession.table(tableName)
   }
 

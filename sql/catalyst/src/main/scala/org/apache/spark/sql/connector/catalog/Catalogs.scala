@@ -89,10 +89,16 @@ private[sql] object Catalogs {
   private def catalogOptions(name: String, conf: SQLConf) = {
     val prefix = Pattern.compile("^spark\\.sql\\.catalog\\." + name + "\\.(.+)")
     val options = new util.HashMap[String, String]
+    val jdbcOptions = Array("dbtable", "query", "partitionColumn", "numPartitions", "upperBound",
+      "lowerBound", "partitionColumn", "queryTimeout", "fetchsize", "truncate", "cascadeTruncate",
+      "createTableOptions", "customSchema", "batchsize", "isolationLevel", "sessionInitStatement",
+      "pushDownPredicate", "keytab", "principal")
     conf.getAllConfs.foreach {
       case (key, value) =>
         val matcher = prefix.matcher(key)
         if (matcher.matches && matcher.groupCount > 0) options.put(matcher.group(1), value)
+        for (jdbcOption <- jdbcOptions)
+          if (key.equalsIgnoreCase(jdbcOption)) options.put(key, value)
     }
     new CaseInsensitiveStringMap(options)
   }
