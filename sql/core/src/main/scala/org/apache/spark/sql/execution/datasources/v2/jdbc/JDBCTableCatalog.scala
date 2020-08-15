@@ -17,6 +17,7 @@
 package org.apache.spark.sql.execution.datasources.v2.jdbc
 
 import java.sql.{Connection, SQLException}
+import java.util.Set
 
 import scala.collection.JavaConverters._
 
@@ -53,12 +54,16 @@ class JDBCTableCatalog extends TableCatalog with Logging {
     dialect = JdbcDialects.get(this.options.url)
   }
 
+  override def getPluginSpecificConfig(): Set[String] = {
+    JDBCOptions.jdbcOptionNames.toSet.asJava
+  }
+
   override def listTables(namespace: Array[String]): Array[Identifier] = {
     checkNamespace(namespace)
     withConnection { conn =>
       val schemaPattern = if (namespace.length == 1) namespace.head else null
       val rs = conn.getMetaData
-        .getTables(null, schemaPattern, "%", Array("TABLE"));
+        .getTables(null, schemaPattern, "%", Array("TABLE"))
       new Iterator[Identifier] {
         def hasNext = rs.next()
         def next = Identifier.of(namespace, rs.getString("TABLE_NAME"))

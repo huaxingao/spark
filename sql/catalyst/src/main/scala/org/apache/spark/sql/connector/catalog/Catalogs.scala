@@ -22,6 +22,8 @@ import java.util
 import java.util.NoSuchElementException
 import java.util.regex.Pattern
 
+import scala.collection.JavaConverters._
+
 import org.apache.spark.SparkException
 import org.apache.spark.sql.internal.SQLConf
 import org.apache.spark.sql.util.CaseInsensitiveStringMap
@@ -58,7 +60,7 @@ private[sql] object Catalogs {
           s"Plugin class for catalog '$name' does not implement CatalogPlugin: $pluginClassName")
       }
       val plugin = pluginClass.getDeclaredConstructor().newInstance().asInstanceOf[CatalogPlugin]
-      plugin.initialize(name, catalogOptions(name, conf))
+      plugin.initialize(name, catalogOptions(name, conf, plugin.getPluginSpecificConfig))
       plugin
     } catch {
       case _: ClassNotFoundException =>
@@ -86,19 +88,16 @@ private[sql] object Catalogs {
    * @param conf a SQLConf
    * @return a case insensitive string map of options starting with spark.sql.catalog.(name).
    */
-  private def catalogOptions(name: String, conf: SQLConf) = {
+  private def catalogOptions(name: String, conf: SQLConf, pluginConfig: util.Set[String]) = {
     val prefix = Pattern.compile("^spark\\.sql\\.catalog\\." + name + "\\.(.+)")
     val options = new util.HashMap[String, String]
-    val jdbcOptions = Array("dbtable", "query", "partitionColumn", "numPartitions", "upperBound",
-      "lowerBound", "partitionColumn", "queryTimeout", "fetchsize", "truncate", "cascadeTruncate",
-      "createTableOptions", "customSchema", "batchsize", "isolationLevel", "sessionInitStatement",
-      "pushDownPredicate", "keytab", "principal")
     conf.getAllConfs.foreach {
       case (key, value) =>
+        for (option <- pluginConfig.asScala)
+          if (key.equalsIgnoreCase(option)) options.put(key, value)
         val matcher = prefix.matcher(key)
         if (matcher.matches && matcher.groupCount > 0) options.put(matcher.group(1), value)
-        for (jdbcOption <- jdbcOptions)
-          if (key.equalsIgnoreCase(jdbcOption)) options.put(key, value)
+
     }
     new CaseInsensitiveStringMap(options)
   }

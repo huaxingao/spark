@@ -17,6 +17,10 @@
 
 package org.apache.spark.sql.connector.catalog;
 
+import java.util.HashSet;
+import java.util.Set;
+
+
 import org.apache.spark.annotation.Evolving;
 import org.apache.spark.sql.internal.SQLConf;
 import org.apache.spark.sql.util.CaseInsensitiveStringMap;
@@ -73,5 +77,9 @@ public interface CatalogPlugin {
    */
   default String[] defaultNamespace() {
     return new String[0];
+  }
+
+  default Set<String> getPluginSpecificConfig() {
+    return new HashSet<>();
   }
 }
