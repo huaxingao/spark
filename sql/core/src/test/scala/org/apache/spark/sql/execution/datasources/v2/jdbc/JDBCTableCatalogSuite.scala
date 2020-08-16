@@ -20,8 +20,6 @@ import java.sql.{Connection, DriverManager}
 import java.util.Properties
 
 import org.apache.spark.SparkConf
-import org.apache.spark.sql.execution.datasources.LogicalRelation
-import org.apache.spark.sql.execution.datasources.jdbc.JDBCRelation
 import org.apache.spark.sql.{QueryTest, Row}
 import org.apache.spark.sql.test.SharedSparkSession
 import org.apache.spark.sql.types._
@@ -183,20 +181,11 @@ class JDBCTableCatalogSuite extends QueryTest with SharedSparkSession {
       .option("upperBound", "3")
       .option("numPartitions", "2")
       .table("h2.test.people")
-    df.explain(true)
-    val jdbcRelations = df.queryExecution.analyzed.collect {
-      case LogicalRelation(r: JDBCRelation, _, _, _) => r
-    }
-    println(jdbcRelations.length == 1)
-    println(jdbcRelations.head.parts.length)
-    // df.show()
-    println("finish first")
     spark.read
       .option("partitionColumn", "name")
       .option("lowerBound", "1")
       .option("upperBound", "5")
       .option("numPartitions", "5")
       .table("h2.test.people")
-    //  .show()
   }
 }

@@ -102,10 +102,7 @@ class JDBCTableCatalog extends TableCatalog with Logging {
     confSetting.asScala.foreach {
       case (key, value) =>
         for (option <- JDBCOptions.jdbcOptionNames)
-          if (key.equalsIgnoreCase(option)) {
-            println(key + "  " + value)
-            newOption = newOption + (key -> value)
-          }
+          if (key.equalsIgnoreCase(option)) newOption = newOption + (key -> value)
     }
     val optionsWithTableName = new JDBCOptions(
       newOption + (JDBCOptions.JDBC_TABLE_NAME -> getTableName(ident)))
