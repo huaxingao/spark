@@ -173,4 +173,21 @@ class JDBCTableCatalogSuite extends QueryTest with SharedSparkSession {
       assert(thrown.getMessage.contains("Unsupported TableChange"))
     }
   }
+
+  test("scan with partition info") {
+    var df = spark.read
+      .option("partitionColumn", "id")
+      .option("lowerBound", "0")
+      .option("upperBound", "3")
+      .option("numPartitions", "2")
+      .table("h2.test.people")
+    // assert(df.rdd.getNumPartitions == 2)
+    df = spark.read
+      .option("partitionColumn", "id")
+      .option("lowerBound", "0")
+      .option("upperBound", "4")
+      .option("numPartitions", "4")
+      .table("h2.test.people")
+    // assert(df.rdd.getNumPartitions == 4)
+  }
 }
