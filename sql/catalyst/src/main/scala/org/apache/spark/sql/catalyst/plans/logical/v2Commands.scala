@@ -624,9 +624,15 @@ object ShowViews {
  * The logical plan of the USE/USE NAMESPACE command.
  */
 case class SetCatalogAndNamespace(
-    catalogManager: CatalogManager,
-    catalogName: Option[String],
-    namespace: Option[Seq[String]]) extends LeafCommand
+    catalogManager: Option[CatalogManager],
+    name: LogicalPlan) extends LeafCommand {
+
+  def withCatalogManager(catalogManager: Option[CatalogManager]): SetCatalogAndNamespace =
+    this.copy(catalogManager = catalogManager)
+
+  def withName(name: LogicalPlan): SetCatalogAndNamespace =
+    this.copy(name = name)
+}
 
 /**
  * The logical plan of the REFRESH TABLE command.
