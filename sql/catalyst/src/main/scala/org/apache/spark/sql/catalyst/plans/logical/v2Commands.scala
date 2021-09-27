@@ -623,12 +623,7 @@ object ShowViews {
 /**
  * The logical plan of the USE/USE NAMESPACE command.
  */
-case class SetCatalogAndNamespace(
-    catalogManager: Option[CatalogManager],
-    name: LogicalPlan) extends LeafCommand {
-
-  def withCatalogManager(catalogManager: Option[CatalogManager]): SetCatalogAndNamespace =
-    this.copy(catalogManager = catalogManager)
+case class SetCatalogAndNamespace(name: LogicalPlan) extends LeafCommand {
 
   def withName(name: LogicalPlan): SetCatalogAndNamespace =
     this.copy(name = name)

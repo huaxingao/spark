@@ -3571,10 +3571,9 @@ class AstBuilder extends SqlBaseBaseVisitor[AnyRef] with SQLConfHelper with Logg
     val nameParts = visitMultipartIdentifier(ctx.multipartIdentifier)
 
     if (ctx.NAMESPACE != null) {
-      SetCatalogAndNamespace(None, ResolvedDBObjectName(null, nameParts))
+      SetCatalogAndNamespace(ResolvedDBObjectName(null, nameParts))
     } else {
       SetCatalogAndNamespace(
-        None,
         UnresolvedDBObjectName(
           nameParts,
           isNamespace = true)
