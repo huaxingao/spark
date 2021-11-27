@@ -210,21 +210,15 @@ class ResolveSessionCatalog(val catalogManager: CatalogManager)
           orCreate = c.orCreate)
       }
 
-    case c @ ReplaceTableAsSelectStatement(
-         SessionCatalogAndTable(catalog, tbl), _, _, _, _, _, _, _, _, _, _, _) =>
-      val provider = c.provider.getOrElse(conf.defaultDataSourceName)
+    case c @ ReplaceTableAsSelect(ResolvedDBObjectName(catalog, _), _, _, _, _, _)
+        if (isSessionCatalog(catalog)) =>
+      val provider = c.tableSpec.provider.getOrElse(conf.defaultDataSourceName)
       if (!isV2Provider(provider)) {
         throw QueryCompilationErrors.replaceTableAsSelectOnlySupportedWithV2TableError
       } else {
-        ReplaceTableAsSelect(
-          catalog.asTableCatalog,
-          tbl.asIdentifier,
-          // convert the bucket spec and add it as a transform
-          c.partitioning ++ c.bucketSpec.map(_.asTransform),
-          c.asSelect,
-          convertTableProperties(c),
-          writeOptions = c.writeOptions,
-          orCreate = c.orCreate)
+        val newTableSpec = c.tableSpec.copy(bucketSpec = None)
+        c.copy(partitioning = c.partitioning ++ c.tableSpec.bucketSpec.map(_.asTransform),
+          tableSpec = newTableSpec)
       }
 
     case DropTable(ResolvedV1TableIdentifier(ident), ifExists, purge) =>

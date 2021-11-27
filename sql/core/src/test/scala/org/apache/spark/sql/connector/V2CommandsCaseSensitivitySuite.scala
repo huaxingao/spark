@@ -17,10 +17,10 @@
 
 package org.apache.spark.sql.connector
 
-import org.apache.spark.sql.catalyst.analysis.{AnalysisTest, CreateTablePartitioningValidationSuite, ResolvedTable, TestRelation2, TestTable2, UnresolvedFieldName, UnresolvedFieldPosition}
-import org.apache.spark.sql.catalyst.plans.logical.{AddColumns, AlterColumn, AlterTableCommand, CreateTableAsSelect, DropColumns, LogicalPlan, QualifiedColType, RenameColumn, ReplaceColumns, ReplaceTableAsSelect}
+import org.apache.spark.sql.catalyst.analysis.{AnalysisTest, CreateTablePartitioningValidationSuite, ResolvedTable, TestRelation2, TestTable2, UnresolvedDBObjectName, UnresolvedFieldName, UnresolvedFieldPosition}
+import org.apache.spark.sql.catalyst.plans.logical.{AddColumns, AlterColumn, AlterTableCommand, CreateTableAsSelect, DropColumns, LogicalPlan, QualifiedColType, RenameColumn, ReplaceColumns, ReplaceTableAsSelect, TableSpec}
 import org.apache.spark.sql.catalyst.rules.Rule
-import org.apache.spark.sql.connector.catalog.Identifier
+import org.apache.spark.sql.connector.catalog.{Identifier}
 import org.apache.spark.sql.connector.catalog.TableChange.ColumnPosition
 import org.apache.spark.sql.connector.expressions.Expressions
 import org.apache.spark.sql.execution.datasources.PreprocessTableCreation
@@ -93,12 +93,14 @@ class V2CommandsCaseSensitivitySuite extends SharedSparkSession with AnalysisTes
     Seq(true, false).foreach { caseSensitive =>
       withSQLConf(SQLConf.CASE_SENSITIVE.key -> caseSensitive.toString) {
         Seq("ID", "iD").foreach { ref =>
+          val tableSpec = TableSpec(None, Map.empty, None, Map.empty,
+            None, None,
+            None, false)
           val plan = ReplaceTableAsSelect(
-            catalog,
-            Identifier.of(Array(), "table_name"),
+            UnresolvedDBObjectName(Array("table_name"), isNamespace = false),
             Expressions.identity(ref) :: Nil,
             TestRelation2,
-            Map.empty,
+            tableSpec,
             Map.empty,
             orCreate = true)
 
@@ -116,12 +118,14 @@ class V2CommandsCaseSensitivitySuite extends SharedSparkSession with AnalysisTes
     Seq(true, false).foreach { caseSensitive =>
       withSQLConf(SQLConf.CASE_SENSITIVE.key -> caseSensitive.toString) {
         Seq("POINT.X", "point.X", "poInt.x", "poInt.X").foreach { ref =>
+          val tableSpec = TableSpec(None, Map.empty, None, Map.empty,
+            None, None,
+            None, false)
           val plan = ReplaceTableAsSelect(
-            catalog,
-            Identifier.of(Array(), "table_name"),
+            UnresolvedDBObjectName(Array("table_name"), isNamespace = false),
             Expressions.bucket(4, ref) :: Nil,
             TestRelation2,
-            Map.empty,
+            tableSpec,
             Map.empty,
             orCreate = true)
 
