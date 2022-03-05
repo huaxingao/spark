@@ -55,7 +55,7 @@ private[sql] object PruneFileSourcePartitions
             HadoopFsRelation(
               catalogFileIndex: CatalogFileIndex,
               partitionSchema,
-              _,
+              dataSchema,
               _,
               _,
               _),
@@ -67,7 +67,7 @@ private[sql] object PruneFileSourcePartitions
         filters.filter(f => f.deterministic && !SubqueryExpression.hasSubquery(f)),
         logicalRelation.output)
       val (partitionKeyFilters, _) = DataSourceUtils
-        .getPartitionFiltersAndDataFilters(partitionSchema, normalizedFilters)
+        .getPartitionFiltersAndDataFilters(partitionSchema, dataSchema, normalizedFilters)
 
       if (partitionKeyFilters.nonEmpty) {
         val prunedFileIndex = catalogFileIndex.filterPartitions(partitionKeyFilters)

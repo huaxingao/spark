@@ -28,7 +28,7 @@ import org.json4s.jackson.Serialization
 import org.apache.spark.SparkUpgradeException
 import org.apache.spark.sql.{SPARK_LEGACY_DATETIME_METADATA_KEY, SPARK_LEGACY_INT96_METADATA_KEY, SPARK_TIMEZONE_METADATA_KEY, SPARK_VERSION_METADATA_KEY}
 import org.apache.spark.sql.catalyst.catalog.{CatalogTable, CatalogUtils}
-import org.apache.spark.sql.catalyst.expressions.{AttributeReference, AttributeSet, Expression, ExpressionSet, PredicateHelper}
+import org.apache.spark.sql.catalyst.expressions.{AttributeReference, AttributeSet, Expression, PredicateHelper}
 import org.apache.spark.sql.catalyst.util.RebaseDateTime
 import org.apache.spark.sql.catalyst.util.RebaseDateTime.RebaseSpec
 import org.apache.spark.sql.errors.{QueryCompilationErrors, QueryExecutionErrors}
@@ -259,6 +259,7 @@ object DataSourceUtils extends PredicateHelper {
 
   def getPartitionFiltersAndDataFilters(
       partitionSchema: StructType,
+      dataSchema: StructType,
       normalizedFilters: Seq[Expression]): (Seq[Expression], Seq[Expression]) = {
     val partitionColumns = normalizedFilters.flatMap { expr =>
       expr.collect {
@@ -266,12 +267,23 @@ object DataSourceUtils extends PredicateHelper {
           attr
       }
     }
+    val dataColumns = normalizedFilters.flatMap { expr =>
+      expr.collect {
+        case attr: AttributeReference if dataSchema.names.contains(attr.name) =>
+          attr
+      }
+    }
     val partitionSet = AttributeSet(partitionColumns)
-    val (partitionFilters, dataFilters) = normalizedFilters.partition(f =>
-      f.references.subsetOf(partitionSet)
-    )
-    val extraPartitionFilter =
-      dataFilters.flatMap(extractPredicatesWithinOutputSet(_, partitionSet))
-    (ExpressionSet(partitionFilters ++ extraPartitionFilter).toSeq, dataFilters)
+    val dataSet = AttributeSet(dataColumns)
+    val partitionFilter =
+      normalizedFilters.flatMap(extractPredicatesWithinOutputSet(_, partitionSet))
+    val dataFilters = normalizedFilters.flatMap(extractPredicatesWithinOutputSet(_, dataSet))
+
+    if (normalizedFilters.size > dataFilters.size + partitionFilter.size) {
+      val extraDataFilter = normalizedFilters.diff(partitionFilter).diff(dataFilters)
+      (partitionFilter, dataFilters ++ extraDataFilter)
+    } else {
+      (partitionFilter, dataFilters)
+    }
   }
 }
