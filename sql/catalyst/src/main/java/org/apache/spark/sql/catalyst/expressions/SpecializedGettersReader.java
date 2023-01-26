@@ -52,7 +52,8 @@ public final class SpecializedGettersReader {
     if (dataType instanceof DoubleType) {
       return obj.getDouble(ordinal);
     }
-    if (dataType instanceof StringType) {
+    if (dataType instanceof StringType || dataType instanceof CharType ||
+        dataType instanceof VarcharType) {
       return obj.getUTF8String(ordinal);
     }
     if (dataType instanceof DecimalType) {

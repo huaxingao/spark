@@ -33,6 +33,7 @@ import org.apache.spark.sql.connector.distributions.{Distribution, Distributions
 import org.apache.spark.sql.connector.expressions._
 import org.apache.spark.sql.connector.metric.{CustomMetric, CustomTaskMetric}
 import org.apache.spark.sql.connector.read._
+import org.apache.spark.sql.connector.read.colstats.{ColumnStatistics, Histogram, HistogramBin}
 import org.apache.spark.sql.connector.read.partitioning.{KeyGroupedPartitioning, Partitioning, UnknownPartitioning}
 import org.apache.spark.sql.connector.write._
 import org.apache.spark.sql.connector.write.streaming.{StreamingDataWriterFactory, StreamingWrite}
@@ -265,7 +266,19 @@ class InMemoryTable(
     }
   }
 
-  case class InMemoryStats(sizeInBytes: OptionalLong, numRows: OptionalLong) extends Statistics
+  case class InMemoryStats(
+      sizeInBytes: OptionalLong,
+      numRows: OptionalLong,
+      override val columnStats: util.Map[NamedReference, ColumnStatistics])
+    extends Statistics
+
+  case class InMemoryColumnStats(
+                                  override val distinctCount: OptionalLong,
+                                  override val nullCount: OptionalLong) extends ColumnStatistics
+
+  case class InMemoryHistogramBin(lo: Double, hi: Double, ndv: Long) extends HistogramBin
+
+  case class InMemoryHistogram(height: Double, bins: Array[HistogramBin]) extends Histogram
 
   case class InMemoryBatchScan(
       var data: Seq[InputPartition],
@@ -278,7 +291,7 @@ class InMemoryTable(
 
     override def estimateStatistics(): Statistics = {
       if (data.isEmpty) {
-        return InMemoryStats(OptionalLong.of(0L), OptionalLong.of(0L))
+        return InMemoryStats(OptionalLong.of(0L), OptionalLong.of(0L), new util.HashMap())
       }
 
       val inputPartitions = data.map(_.asInstanceOf[BufferedRows])
@@ -287,7 +300,38 @@ class InMemoryTable(
       val objectHeaderSizeInBytes = 12L
       val rowSizeInBytes = objectHeaderSizeInBytes + schema.defaultSize
       val sizeInBytes = numRows * rowSizeInBytes
-      InMemoryStats(OptionalLong.of(sizeInBytes), OptionalLong.of(numRows))
+      val numOfCols = tableSchema.fields.length
+      val dataTypes = tableSchema.fields.map(_.dataType)
+      val colValueSets = new Array[util.HashSet[Object]](numOfCols)
+      val numOfNulls = new Array[Long](numOfCols)
+      for (i <- 0 until numOfCols) {
+        colValueSets(i) = new util.HashSet[Object]
+      }
+
+      inputPartitions.foreach(inputPartition =>
+        inputPartition.rows.foreach(row =>
+          for (i <- 0 until numOfCols) {
+            colValueSets(i).add(row.get(i, dataTypes(i)))
+            if (row.isNullAt(i)) {
+              numOfNulls(i) += 1
+            }
+          }
+        )
+      )
+
+      val map = new util.HashMap[NamedReference, ColumnStatistics]()
+      val colNames = tableSchema.fields.map(_.name)
+      var i = 0
+      for (col <- colNames) {
+        val fieldReference = FieldReference.column(col)
+        val colStats = InMemoryColumnStats(
+          OptionalLong.of(colValueSets(i).size()),
+          OptionalLong.of(numOfNulls(i)))
+        map.put(fieldReference, colStats)
+        i = i + 1
+      }
+
+      InMemoryStats(OptionalLong.of(sizeInBytes), OptionalLong.of(numRows), map)
     }
 
     override def outputPartitioning(): Partitioning = {
