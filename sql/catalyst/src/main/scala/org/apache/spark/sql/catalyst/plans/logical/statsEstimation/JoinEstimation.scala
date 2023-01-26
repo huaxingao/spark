@@ -180,7 +180,11 @@ case class JoinEstimation(join: Join) extends Logging {
   private def computeCardinalityAndStats(keyPairs: Seq[(AttributeReference, AttributeReference)])
     : (BigInt, AttributeMap[ColumnStat]) = {
     // If there's no column stats available for join keys, estimate as cartesian product.
+    logInfo("[huaxin] leftStats.rowCount : " + leftStats.rowCount.get)
+    logInfo("[huaxin] rightStats.rowCount : " + rightStats.rowCount.get)
     var joinCard: BigInt = leftStats.rowCount.get * rightStats.rowCount.get
+    logInfo("[huaxin] keyPairs size : " + keyPairs.length)
+    logInfo("[huaxin] original joinCard : " + joinCard)
     val keyStatsAfterJoin = new mutable.HashMap[Attribute, ColumnStat]()
     var i = 0
     while(i < keyPairs.length && joinCard != 0) {
@@ -213,6 +217,7 @@ case class JoinEstimation(join: Join) extends Logging {
       }
       i += 1
     }
+    logInfo("[huaxin] adjudted joinCard : " + joinCard)
     (joinCard, AttributeMap(keyStatsAfterJoin.toSeq))
   }
 
@@ -222,8 +227,11 @@ case class JoinEstimation(join: Join) extends Logging {
       rightKey: AttributeReference,
       min: Option[Any],
       max: Option[Any]): (BigInt, ColumnStat) = {
+    logInfo("[huaxin] computeByNdv")
     val leftKeyStat = leftStats.attributeStats(leftKey)
     val rightKeyStat = rightStats.attributeStats(rightKey)
+    logInfo("[huaxin] rightKey ndv: " + rightKeyStat.distinctCount.get)
+    logInfo("[huaxin] leftKey ndv: " + leftKeyStat.distinctCount.get)
     val maxNdv = leftKeyStat.distinctCount.get.max(rightKeyStat.distinctCount.get)
     // Compute cardinality by the basic formula.
     val card = BigDecimal(leftStats.rowCount.get * rightStats.rowCount.get) / BigDecimal(maxNdv)
@@ -241,6 +249,7 @@ case class JoinEstimation(join: Join) extends Logging {
       None
     }
     val newStats = ColumnStat(newNdv, min, max, Some(0), newAvgLen, newMaxLen)
+    logInfo("[huaxin] card calculated by ndv: " + card)
 
     (ceil(card), newStats)
   }
@@ -329,7 +338,7 @@ case class JoinEstimation(join: Join) extends Logging {
       // Note: join keys from EqualNullSafe also fall into this case (Coalesce), consider to
       // support it in the future by using `nullCount` in column stats.
       case (lk: AttributeReference, rk: AttributeReference)
-        if columnStatsWithCountsExist((leftStats, lk), (rightStats, rk)) => (lk, rk)
+        if columnStatsWithNDVExist((leftStats, lk), (rightStats, rk)) => (lk, rk)
     }
   }
 

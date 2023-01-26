@@ -45,6 +45,12 @@ object EstimationUtils {
     }
   }
 
+  def columnStatsWithNDVExist(statsAndAttr: (Statistics, Attribute)*): Boolean = {
+    statsAndAttr.forall { case (stats, attr) =>
+      stats.attributeStats.get(attr).map(_.distinctCount.isDefined).getOrElse(false)
+    }
+  }
+
   /** Statistics for a Column containing only NULLs. */
   def nullColumnStat(dataType: DataType, rowCount: BigInt): ColumnStat = {
     ColumnStat(distinctCount = Some(0), min = None, max = None, nullCount = Some(rowCount),

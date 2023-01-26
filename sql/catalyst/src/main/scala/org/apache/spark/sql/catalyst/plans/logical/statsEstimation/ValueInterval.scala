@@ -67,7 +67,7 @@ object ValueInterval {
       // we assume they are intersected to be conservative on estimation
       true
     case (_, _: NullValueInterval) | (_: NullValueInterval, _) =>
-      false
+      true
     case (n1: NumericValueInterval, n2: NumericValueInterval) =>
       n1.min.compareTo(n2.max) <= 0 && n1.max.compareTo(n2.min) >= 0
     case _ =>
@@ -82,6 +82,8 @@ object ValueInterval {
     (r1, r2) match {
       case (_, _: DefaultValueInterval) | (_: DefaultValueInterval, _) =>
         // binary/string types don't support intersecting.
+        (None, None)
+      case (_, _: NullValueInterval) | (_: NullValueInterval, _) =>
         (None, None)
       case (n1: NumericValueInterval, n2: NumericValueInterval) =>
         // Choose the maximum of two min values, and the minimum of two max values.
